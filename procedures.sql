@@ -1,5 +1,5 @@
-INSERT INTO usuario VALUES (1, 'Juan', 'Perez', 'juanperez@mail.com', 'Experto', 85), (2, 'Maria', 'Lopez', 'marialopez@mail.com', 'Intermedio', 72), (3, 'Carlos', 'Gomez', 'carlosgomez@mail.com', 'Avanzado', 78), (4, 'Laura', 'Fernández', 'laura.fernandez@mail.com', 'Básico', 45), (5, 'Pedro', 'Martínez', 'pedromartinez@mail.com', 'Experto', 90), (6, 'Ana', 'Torres', 'anatorres@mail.com', 'Intermedio', 67), (7, 'Jorge', 'Díaz', 'jorgediaz@mail.com', 'Básico', 52), (8, 'Lucía', 'Méndez', 'luciamendez@mail.com', 'Avanzado', 80), (9, 'Esteban', 'Paredes', 'estebanp@mail.com', 'Experto', 95), (10, 'Camila', 'Suárez', 'camilasuarez@mail.com', 'Básico', 60);
-INSERT INTO producto VALUES(1, 'TV42', 'Televisor LED 42 pulgadas', 1),(2, 'PS5', 'Consola PlayStation 5', 2),(3, 'CELU13', 'iPhone 13 128GB', 3),(4, 'NOTE9', 'Notebook Lenovo i5', 4),(5, 'AURX', 'Auriculares Bluetooth', 5), (6, 'CAMCAN', 'Cámara Canon Reflex', 6),(7, 'TABLET8', 'Tablet Samsung 8"', 7),(8, 'DRONX', 'Dron con cámara 4K', 8),(9, 'SMTV', 'Smart TV 55"', 9),(10, 'IMAC24', 'iMac 24"', 10);
+INSERT INTO usuario (DNI, nombre, apellido, nivel, reputacion, email, facturacion) VALUES (12345678, 'Juan', 'Pérez', 'Normal', 0, 'juan.perez@email.com', 1500), (23456789, 'María', 'Gómez', 'Normal', 0, 'maria.gomez@email.com', 3200), (34567890, 'Carlos', 'Ramírez', 'Normal', 0, 'carlos.ramirez@email.com', 2800), (45678901, 'Lucía', 'Fernández', 'Normal', 0, 'lucia.fernandez@email.com', 1200), (56789012, 'Pedro', 'Martínez', 'Normal', 0, 'pedro.martinez@email.com', 2100), (67890123, 'Ana', 'López', 'Normal', 0, 'ana.lopez@email.com', 4500), (78901234, 'Diego', 'Sánchez', 'Normal', 0, 'diego.sanchez@email.com', 950), (89012345, 'Sofía', 'Torres', 'Normal', 0, 'sofia.torres@email.com', 3000), (90123456, 'Andrés', 'Vega', 'Normal', 0, 'andres.vega@email.com', 3900), (12340987, 'Valeria', 'Castro', 'Normal', 0, 'valeria.castro@email.com', 1700);
+INSERT INTO producto (idProducto, nombreProducto, descripcion, usuario_DNI) VALUES (1, 'Auriculares Bluetooth', 'Auriculares inalámbricos con cancelación de ruido', 12345678), (2, 'Notebook Lenovo', 'Portátil de 15 pulgadas con procesador Intel i7', 23456789), (3, 'Smartphone Samsung', 'Celular Android con pantalla AMOLED', 34567890), (4, 'Impresora HP', 'Impresora multifunción a color', 45678901), (5, 'Teclado Mecánico', 'Teclado retroiluminado para gaming', 56789012), (6, 'Mouse Inalámbrico', 'Mouse ergonómico con sensor óptico', 67890123), (7, 'Monitor 24"', 'Monitor Full HD con tecnología IPS', 78901234), (8, 'Tablet Android', 'Tablet de 10 pulgadas ideal para multimedia', 89012345), (9, 'Cámara Web', 'Cámara HD para videollamadas y streaming', 90123456), (10, 'Disco Externo 1TB', 'Almacenamiento portátil USB 3.0', 12340987);
 INSERT INTO categoria VALUES (1, 'Tecnología'), (2, 'Hogar'), (3, 'Deportes'), (4, 'Moda'), (5, 'Juguetes'), (6, 'Electrodomésticos'), (7, 'Libros'), (8, 'Jardinería'), (9, 'Salud'), (10, 'Automóviles');
 INSERT INTO publicacion (id, precio, nivelPublicacion, estado, producto_idProducto, categoria_idCategoria, usuario_DNI) VALUES (1, 500.00, 'Publicación Platino', 'activa', 1, 1, 1), (2, 75.00, 'Publicación Plata', 'finalizada', 2, 2, 2), (3, 120.00, 'Publicación Oro', 'activa', 3, 3, 3), (4, 45.00, 'Publicación Bronce', 'activa', 4, 4, 4), (5, 30.00, 'Publicación Oro', 'finalizada', 5, 5, 5), (6, 40.00, 'Publicación Plata', 'activa', 6, 6, 6), (7, 15.00, 'Publicación Bronce', 'activa', 7, 7, 7), (8, 22.00, 'Publicación Bronce', 'finalizada', 8, 8, 8), (9, 600.00, 'Publicación Platino', 'activa', 9, 9, 9), (10, 18.00, 'Publicación Plata', 'finalizada', 10, 10, 10);
 INSERT INTO respuestas (idRespuesta, respuesta, preguntas_idPregunta) VALUES (1, 'Sí, tiene garantía por 12 meses.', 1), (2, 'Tenemos tallas 40 al 44.', 2), (3, 'No, es bastante silenciosa.', 3), (4, 'Sí, producto 100% original.', 4), (5, 'Tiene 350 páginas.', 5), (6, 'Sí, incluye batería recargable.', 6), (7, 'Vence en diciembre 2026.', 7), (8, 'Sí, es apta para piel sensible.', 8), (9, 'Incluye 3 juegos.', 9), (10, 'Sí, sirve para cualquier color.', 10);
@@ -28,12 +28,13 @@ call buscarPublicacion("TV42");
 #inserte una fila en la tabla publicación. Además tiene que recibir el tipo de publicación,
 #si es una subasta o una venta directa.
 delimiter //
-create procedure crearPublicacion (in idPubli int, in cuantoDuele float, in nivelPubli varchar(45), in estado varchar(45), in tipo text)
+create procedure crearPublicacion (in idPubli int, in cuantoDuele float, in nivelPubli varchar(45), in estado varchar(45), in tipo text, in idProdu int, in idCat int, in DNI int, in fecha datetime, in titulito text)
 begin 
-insert into publicacion values(idPubli, cuantoDuele, nivelPubli, estado);#agregar lo q falta
+insert into publicacion values(idPubli, cuantoDuele, nivelPubli, estado, idProdu, idCat, DNI, fecha, titulito);
 end //
 delimiter ;
 
+	
 delimiter //
 create procedure crearSubasta(in ofert int, in idPubli int)
 begin 
@@ -56,19 +57,30 @@ select pregunta from preguntas where publicacion_id = idPubli;
 end //
 delimiter ;
 call verPreguntas(1);
-#4 Crear un procedimiento actualizarReputacionUsuarios que para cada usuario calcule el promedio de las calificaciones recibidas en las ventas realizadas (tanto como vendedor y comprador)
+#Crear un procedimiento actualizarReputacionUsuarios que para cada usuario calcule el promedio de
+#las calificaciones recibidas en las ventas realizadas (tanto como vendedor y comprador)
 # y actualice el campo reputación con ese promedio (en escala 0-100).Usar cursores.
 delimiter //
 create procedure actualizarReputacionUsuarios()
 begin 
 declare hayFilas int default 1;
+declare usuario int default 0;
 declare promedio1 int default 0;
 declare promedio2 int default 0;
+declare cursorCalificaciones cursor for select usuario_DNI, avg(calificacion_compra), avg(calificacion_vendedor) from publicacion join compra on publicacion.id = publicacion_id group by usuario_DNI; 
+declare continue handler for not found set hayFilas = 0;
+open cursorCalificaciones;
+loopsito:loop
+	fetch cursorCalificaciones into usuario, promedio1, promedio2;
+    if hayFilas = 0 then 
+		leave loopsito;
+	end if;
+    update usuario set reputacion = (promedio1 + promedio2) / 2 where DNI = usuario;
+    end loop;
+    close cursorCalificaciones;
+    end //
+    delimiter ;
 
-
-
-end //
-delimiter ;
 
 
 	
