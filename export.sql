@@ -30,15 +30,6 @@ CREATE TABLE `categoria` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `categoria`
---
-
-LOCK TABLES `categoria` WRITE;
-/*!40000 ALTER TABLE `categoria` DISABLE KEYS */;
-/*!40000 ALTER TABLE `categoria` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `compra`
 --
 
@@ -66,15 +57,6 @@ CREATE TABLE `compra` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `compra`
---
-
-LOCK TABLES `compra` WRITE;
-/*!40000 ALTER TABLE `compra` DISABLE KEYS */;
-/*!40000 ALTER TABLE `compra` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `envio`
 --
 
@@ -90,15 +72,6 @@ CREATE TABLE `envio` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `envio`
---
-
-LOCK TABLES `envio` WRITE;
-/*!40000 ALTER TABLE `envio` DISABLE KEYS */;
-/*!40000 ALTER TABLE `envio` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `historial_ofertas`
 --
 
@@ -106,8 +79,8 @@ DROP TABLE IF EXISTS `historial_ofertas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historial_ofertas` (
-  `id` int NOT NULL,
-  `oferta` double DEFAULT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `oferta` int DEFAULT NULL,
   `usuario_DNI` int NOT NULL,
   `publicacion_id` int NOT NULL,
   PRIMARY KEY (`id`),
@@ -117,15 +90,6 @@ CREATE TABLE `historial_ofertas` (
   CONSTRAINT `fk_historial_ofertas_usuario1` FOREIGN KEY (`usuario_DNI`) REFERENCES `usuario` (`DNI`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `historial_ofertas`
---
-
-LOCK TABLES `historial_ofertas` WRITE;
-/*!40000 ALTER TABLE `historial_ofertas` DISABLE KEYS */;
-/*!40000 ALTER TABLE `historial_ofertas` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `pago`
@@ -140,15 +104,6 @@ CREATE TABLE `pago` (
   PRIMARY KEY (`idPago`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `pago`
---
-
-LOCK TABLES `pago` WRITE;
-/*!40000 ALTER TABLE `pago` DISABLE KEYS */;
-/*!40000 ALTER TABLE `pago` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `preguntas`
@@ -172,15 +127,6 @@ CREATE TABLE `preguntas` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `preguntas`
---
-
-LOCK TABLES `preguntas` WRITE;
-/*!40000 ALTER TABLE `preguntas` DISABLE KEYS */;
-/*!40000 ALTER TABLE `preguntas` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `producto`
 --
 
@@ -197,15 +143,6 @@ CREATE TABLE `producto` (
   CONSTRAINT `fk_producto_usuario1` FOREIGN KEY (`usuario_DNI`) REFERENCES `usuario` (`DNI`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `producto`
---
-
-LOCK TABLES `producto` WRITE;
-/*!40000 ALTER TABLE `producto` DISABLE KEYS */;
-/*!40000 ALTER TABLE `producto` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `publicacion`
@@ -234,15 +171,6 @@ CREATE TABLE `publicacion` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `publicacion`
---
-
-LOCK TABLES `publicacion` WRITE;
-/*!40000 ALTER TABLE `publicacion` DISABLE KEYS */;
-/*!40000 ALTER TABLE `publicacion` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `respuestas`
 --
 
@@ -250,7 +178,7 @@ DROP TABLE IF EXISTS `respuestas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `respuestas` (
-  `idRespuesta` int NOT NULL,
+  `idRespuesta` int NOT NULL AUTO_INCREMENT,
   `respuesta` text,
   `preguntas_idPregunta` int NOT NULL,
   PRIMARY KEY (`idRespuesta`),
@@ -258,15 +186,6 @@ CREATE TABLE `respuestas` (
   CONSTRAINT `fk_respuestas_preguntas1` FOREIGN KEY (`preguntas_idPregunta`) REFERENCES `preguntas` (`idPregunta`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `respuestas`
---
-
-LOCK TABLES `respuestas` WRITE;
-/*!40000 ALTER TABLE `respuestas` DISABLE KEYS */;
-/*!40000 ALTER TABLE `respuestas` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `subasta`
@@ -279,20 +198,11 @@ CREATE TABLE `subasta` (
   `oferta` int DEFAULT NULL,
   `publicacion_id` int NOT NULL,
   `fecha_tope` datetime DEFAULT NULL,
-  `oferta_minima` double DEFAULT NULL,
+  `oferta_minima` int DEFAULT NULL,
   PRIMARY KEY (`publicacion_id`),
   CONSTRAINT `fk_subasta_publicacion1` FOREIGN KEY (`publicacion_id`) REFERENCES `publicacion` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `subasta`
---
-
-LOCK TABLES `subasta` WRITE;
-/*!40000 ALTER TABLE `subasta` DISABLE KEYS */;
-/*!40000 ALTER TABLE `subasta` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `usuario`
@@ -314,15 +224,6 @@ CREATE TABLE `usuario` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `usuario`
---
-
-LOCK TABLES `usuario` WRITE;
-/*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
-/*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `venta_directa`
 --
 
@@ -333,6 +234,7 @@ CREATE TABLE `venta_directa` (
   `pago_idPago` int NOT NULL,
   `envio_idenvio` int NOT NULL,
   `publicacion_id` int NOT NULL,
+  `calificacion_venta` int DEFAULT NULL,
   PRIMARY KEY (`publicacion_id`),
   KEY `fk_venta_directa_pago1_idx` (`pago_idPago`),
   KEY `fk_venta_directa_envio1_idx` (`envio_idenvio`),
@@ -342,15 +244,6 @@ CREATE TABLE `venta_directa` (
   CONSTRAINT `fk_venta_directa_publicacion1` FOREIGN KEY (`publicacion_id`) REFERENCES `publicacion` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `venta_directa`
---
-
-LOCK TABLES `venta_directa` WRITE;
-/*!40000 ALTER TABLE `venta_directa` DISABLE KEYS */;
-/*!40000 ALTER TABLE `venta_directa` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -361,4 +254,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-13 10:50:49
+-- Dump completed on 2025-06-13 11:48:06
