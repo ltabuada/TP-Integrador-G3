@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.42, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: tp_integradorG3
+-- Host: 127.0.0.1    Database: TP_integrador
 -- ------------------------------------------------------
 -- Server version	8.0.42-0ubuntu0.22.04.1
 
@@ -53,7 +53,6 @@ CREATE TABLE `compra` (
   `publicacion_id` int DEFAULT NULL,
   `pago_idPago` int DEFAULT NULL,
   `envio_idEnvio` int DEFAULT NULL,
-  `calificacion_vendedor` int DEFAULT NULL,
   PRIMARY KEY (`idcompra`),
   KEY `usuario_DNI` (`usuario_DNI`),
   KEY `publicacion_id` (`publicacion_id`),
@@ -97,6 +96,35 @@ CREATE TABLE `envio` (
 LOCK TABLES `envio` WRITE;
 /*!40000 ALTER TABLE `envio` DISABLE KEYS */;
 /*!40000 ALTER TABLE `envio` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `historial_ofertas`
+--
+
+DROP TABLE IF EXISTS `historial_ofertas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `historial_ofertas` (
+  `id` int NOT NULL,
+  `oferta` double DEFAULT NULL,
+  `usuario_DNI` int NOT NULL,
+  `publicacion_id` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_historial_ofertas_usuario1_idx` (`usuario_DNI`),
+  KEY `fk_historial_ofertas_publicacion1_idx` (`publicacion_id`),
+  CONSTRAINT `fk_historial_ofertas_publicacion1` FOREIGN KEY (`publicacion_id`) REFERENCES `publicacion` (`id`),
+  CONSTRAINT `fk_historial_ofertas_usuario1` FOREIGN KEY (`usuario_DNI`) REFERENCES `usuario` (`DNI`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `historial_ofertas`
+--
+
+LOCK TABLES `historial_ofertas` WRITE;
+/*!40000 ALTER TABLE `historial_ofertas` DISABLE KEYS */;
+/*!40000 ALTER TABLE `historial_ofertas` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -195,7 +223,6 @@ CREATE TABLE `publicacion` (
   `categoria_idCategoria` int NOT NULL,
   `usuario_DNI` int NOT NULL,
   `fechaPublicacion` date DEFAULT NULL,
-  `titulo` text,
   PRIMARY KEY (`id`),
   KEY `fk_publicacion_producto1_idx` (`producto_idProducto`),
   KEY `fk_publicacion_categoria1_idx` (`categoria_idCategoria`),
@@ -251,6 +278,8 @@ DROP TABLE IF EXISTS `subasta`;
 CREATE TABLE `subasta` (
   `oferta` int DEFAULT NULL,
   `publicacion_id` int NOT NULL,
+  `fecha_tope` datetime DEFAULT NULL,
+  `oferta_minima` double DEFAULT NULL,
   PRIMARY KEY (`publicacion_id`),
   CONSTRAINT `fk_subasta_publicacion1` FOREIGN KEY (`publicacion_id`) REFERENCES `publicacion` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -332,4 +361,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-13  9:37:48
+-- Dump completed on 2025-06-13 10:50:49
