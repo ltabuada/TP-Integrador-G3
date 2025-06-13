@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.42, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: TP_integrador
+-- Host: 127.0.0.1    Database: tp_integradorG3
 -- ------------------------------------------------------
 -- Server version	8.0.42-0ubuntu0.22.04.1
 
@@ -53,6 +53,7 @@ CREATE TABLE `compra` (
   `publicacion_id` int DEFAULT NULL,
   `pago_idPago` int DEFAULT NULL,
   `envio_idEnvio` int DEFAULT NULL,
+  `calificacion_vendedor` int DEFAULT NULL,
   PRIMARY KEY (`idcompra`),
   KEY `usuario_DNI` (`usuario_DNI`),
   KEY `publicacion_id` (`publicacion_id`),
@@ -194,6 +195,7 @@ CREATE TABLE `publicacion` (
   `categoria_idCategoria` int NOT NULL,
   `usuario_DNI` int NOT NULL,
   `fechaPublicacion` date DEFAULT NULL,
+  `titulo` text,
   PRIMARY KEY (`id`),
   KEY `fk_publicacion_producto1_idx` (`producto_idProducto`),
   KEY `fk_publicacion_categoria1_idx` (`categoria_idCategoria`),
@@ -330,4 +332,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-06 11:58:05
+-- Dump completed on 2025-06-13  9:37:48
