@@ -2,7 +2,7 @@
 delimiter //
 create trigger borrarPreguntas before delete on publicacion for each row 
 begin
-	delete from preputacionreguntas where idPublicacion = old.id;
+	delete from preguntas where idPublicacion = old.id;
 end //
 delimiter ;
 
