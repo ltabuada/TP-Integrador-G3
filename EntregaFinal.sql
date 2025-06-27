@@ -82,7 +82,6 @@ drop procedure actualizarReputacionUsuarios;
 call actualizarReputacionUsuarios();
 
 #------------------------------Stored Functions------------------------------#
-
 #1) 
 delimiter //
 create function comprarProducto(dni int, idPubli int, metPago int, envio int) returns text deterministic
@@ -93,7 +92,7 @@ if (select estado from publicacion) = "Finalizada" then
 else if (select subasta.publicacion_id from subasta) != null then
 	set mensaje = "Es una subasta";
 else 
-	insert into compra values(null, current_date(), null, dni, idpubli, metPago, envio);
+	insert into compra values(1, current_date(), null, dni, idpubli, metPago, envio);
 end if;
 end if;
 return mensaje;
@@ -101,7 +100,7 @@ end //
 delimiter ;
 drop function comprarProducto;
 select comprarProducto(1,2,1,1);
-
+ 
 #2)------------------------------------------------------------------------------------------------
 delimiter //
 create function cerrarPublicacion(DNI int) returns text deterministic
@@ -117,7 +116,7 @@ return msg;
 end //
 delimiter ;
 select cerrarPublicacion(1);
-
+ 
 #3)------------------------------------------------------------------------------------------------
 delimiter //
 create function eliminarProducto(idProdu int) returns text deterministic
@@ -128,11 +127,13 @@ if idProdu in (select producto_idProducto from publicacion) then
 else 
 	delete from producto where idProducto = idProdu;
     set msg = "Producto eliminado";
-    
+        RETURN msg;
+ 
 	end if;
 end //
 delimiter ;
-
+select eliminarProducto;
+ 
 #4)------------------------------------------------------------------------------------------------
 delimiter //
 create function pausarPublicacion(idPubli int) returns text deterministic
@@ -143,13 +144,13 @@ if idPubli in (select id from publicacion) then
     set mensajito = "Publicacion pausada";
 else 
 	set mensajito = "No existe la publicacion";
-    
+    return mensajito;
 end if;
 end //
 delimiter ;
-
+ 
 #5)------------------------------------------------------------------------------------------------
-
+ 
 delimiter //
 create function pujarProducto(idDeseado int, ofertaNueva int, usuarioOfertante /*su dni*/ int) returns text deterministic
 begin
@@ -178,8 +179,7 @@ begin
     return mensaje;
 end //
 delimiter ;
- 
- 
+
 #6)------------------------------------------------------------------------------------------------
 delimiter //
 create function eliminarCategoria (categoriaDeseada varchar(45)) returns text deterministic
@@ -194,9 +194,8 @@ begin
     return mensaje;
 end //
 delimiter ;
- 
 #7)------------------------------------------------------------------------------------------------
-
+ 
 delimiter //
 create function puntuarComprador(usuarioVendedor int, publicacionDada int, calificacionDada int) returns text deterministic
 begin
@@ -215,9 +214,9 @@ begin
     return mensaje;
 end //
 delimiter ;
-
+ 
 #8)------------------------------------------------------------------------------------------------
-
+ 
 delimiter //
 create function responderpregunta(id_vendedor int, idPreg int, msgRespuesta text) returns text deterministic
 begin 
@@ -234,39 +233,35 @@ delimiter ;
 
 #------------------------------Vistas------------------------------#
 #1)
-create view preguntas_sin_respuesta as select preguntas.pregunta, preguntas.idpregunta, publicacion.idpublicacion, producto.nombre as nombre_producto, usuario.nombre as nombre_usuario from preguntas join publicacion on preguntas.idpublicacion = publicacion.idpublicacion join usuario on preguntas.idusuariocompra = usuario.idusuario join producto on publicacion.idproducto = producto.idproducto where publicacion.estado = 'activa' and preguntas.idpregunta not in (select idpregunta from respuestas);
+create view preguntas_sin_respuesta as select preguntas.idPregunta, preguntas.pregunta, publicacion.id as publicacion_id, producto.nombreProducto as nombre_producto, usuario.nombre as nombre_usuario from preguntas join publicacion on preguntas.publicacion_id = publicacion.id join producto on publicacion.producto_idProducto = producto.idProducto join usuario on preguntas.usuario_DNI = usuario.DNI where publicacion.estado = 'activa' and preguntas.idPregunta not in (select preguntas_idPregunta from respuestas);
 
 #2) ------------------------------------------------------------------------------------------------
-create view top_10_categorias as select categoria.idcategoria, categoria.nombre, count(publicacion.idpublicacion) as total_publicaciones from publicacion join categoria on categoria.idcategoria=publicacion.idcategoria where week(fechaPublicacion) >= week(current_date()) group by categoria.idcategoria, categoria.nombre order by total_publicaciones DESC LIMIT 10;
+create view top10_categorias as select categoria.categoria, count(*) as cantidad_publicaciones from publicacion join categoria on publicacion.categoria_idCategoria = categoria.idCategoria where publicacion.fechaPublicacion >= curdate() - interval 7 day group by categoria.categoria order by cantidad_publicaciones desc limit 10;
 
 #3)------------------------------------------------------------------------------------------------
-create view publicacion_tendencia_hoy as select publicacion.idpublicacion , COUNT(pregunta.idpregunta) AS total_preguntas from publicacion join pregunta on publicacion.idpublicacion=pregunta.idpublicacion where pregunta.fechaPregunta = current_date() group by publicacion.idpublicacion order by total_preguntas desc;
+create view publicaciones_en_tendencia as select p.publicacion_id, pub.id, prod.nombreProducto, count(*) as cantidad_preguntas from preguntas p join publicacion pub on p.publicacion_id = pub.id join producto prod on pub.producto_idProducto = prod.idProducto where p.fechaPreguntas = curdate() group by p.publicacion_id, pub.id, prod.nombreProducto order by cantidad_preguntas desc;
 
 #4)------------------------------------------------------------------------------------------------
-create view mejor_vendedor as select usuario.nombre from usuario join publicacion on usuario.idusuario=publicacion.idusuariovendedor join categoria on categoria.idcategoria=publicacion.idcategoria where reputacion=(select max(reputacion) from publicacion join usuario on usuario.idusuario=publicacion.idusuariovendedor where categoria.idcategoria=publicacion.idcategoria);
+create view vendedor_mayor_reputacion_por_categoria as select categoria.categoria, usuario.nombre from categoria join publicacion on categoria.idCategoria = publicacion.categoria_idCategoria join usuario on publicacion.usuario_DNI = usuario.DNI where (categoria.idCategoria, usuario.reputacion) in (select publicacion.categoria_idCategoria, max(usuario.reputacion) from publicacion join usuario on publicacion.usuario_DNI = usuario.DNI group by publicacion.categoria_idCategoria);
 
 #------------------------------Triggers------------------------------#
 
 #1)
 delimiter //
 create trigger borrarPreguntas before delete on publicacion for each row 
-begin
-	delete from preputacionreguntas where idPublicacion = old.id;
+begin 
+	delete from preguntas where publicacion_id = old.id; 
 end //
 delimiter ;
 
+
 #2)------------------------------------------------------------------------------------------------
 delimiter //
-create trigger calificar after update on compra for each row
-begin
-	declare repComprador int default 0;
-    declare repVendedor int default 0;
-    select reputacion into repComprador from usuario join compra on usuario_DNI = usuario.DNI;
-    select reputacion into repVendedor from usuario join publicacion on usuario_DNI = usuario.DNI;
-    if (repComprador is null and repVendedor is null) then
-    set repComprador = avg(calificacion_compra);
-	end if;
-		
+create trigger calificar after update on venta_directa for each row
+begin 
+	if new.calificacion_venta is not null then 
+		update usuario set reputacion = new.calificacion_venta where DNI = (select usuario_DNI from publicacion where id = new.publicacion_id);
+	end if; 
 end //
 delimiter ;
 
