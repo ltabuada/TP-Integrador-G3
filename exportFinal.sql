@@ -1,9 +1,8 @@
 -- MySQL dump 10.13  Distrib 8.0.42, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: TP-Integrador-G3
+-- Host: 127.0.0.1    Database: TP_Integrador_G3
 -- ------------------------------------------------------
 -- Server version	8.0.42-0ubuntu0.22.04.1
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -244,50 +243,5 @@ CREATE TABLE `venta_directa` (
   CONSTRAINT `fk_venta_directa_publicacion1` FOREIGN KEY (`publicacion_id`) REFERENCES `publicacion` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Final view structure for view `preguntas_sin_respuesta`
---
-
-/*!50001 DROP VIEW IF EXISTS `preguntas_sin_respuesta`*/;
-/*!50001 SET @saved_cs_client          = @@character_set_client */;
-/*!50001 SET @saved_cs_results         = @@character_set_results */;
-/*!50001 SET @saved_col_connection     = @@collation_connection */;
-/*!50001 SET character_set_client      = utf8mb4 */;
-/*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
-/*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`alumno`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `preguntas_sin_respuesta` AS select `preguntas`.`idPregunta` AS `idPregunta`,`preguntas`.`pregunta` AS `pregunta`,`publicacion`.`id` AS `publicacion_id`,`producto`.`nombreProducto` AS `nombre_producto`,`usuario`.`nombre` AS `nombre_usuario` from (((`preguntas` join `publicacion` on((`preguntas`.`publicacion_id` = `publicacion`.`id`))) join `producto` on((`publicacion`.`producto_idProducto` = `producto`.`idProducto`))) join `usuario` on((`preguntas`.`usuario_DNI` = `usuario`.`DNI`))) where ((`publicacion`.`estado` = 'activa') and `preguntas`.`idPregunta` in (select `respuestas`.`preguntas_idPregunta` from `respuestas`) is false) */;
-/*!50001 SET character_set_client      = @saved_cs_client */;
-/*!50001 SET character_set_results     = @saved_cs_results */;
-/*!50001 SET collation_connection      = @saved_col_connection */;
-
---
--- Final view structure for view `top10_categorias`
---
-
-/*!50001 DROP VIEW IF EXISTS `top10_categorias`*/;
-/*!50001 SET @saved_cs_client          = @@character_set_client */;
-/*!50001 SET @saved_cs_results         = @@character_set_results */;
-/*!50001 SET @saved_col_connection     = @@collation_connection */;
-/*!50001 SET character_set_client      = utf8mb4 */;
-/*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
-/*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`alumno`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `top10_categorias` AS select `categoria`.`categoria` AS `categoria`,count(0) AS `cantidad_publicaciones` from (`publicacion` join `categoria` on((`publicacion`.`categoria_idCategoria` = `categoria`.`idCategoria`))) where (`publicacion`.`fechaPublicacion` >= (curdate() - interval 7 day)) group by `categoria`.`categoria` order by `cantidad_publicaciones` desc limit 10 */;
-/*!50001 SET character_set_client      = @saved_cs_client */;
-/*!50001 SET character_set_results     = @saved_cs_results */;
-/*!50001 SET collation_connection      = @saved_col_connection */;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-06-27 11:47:40

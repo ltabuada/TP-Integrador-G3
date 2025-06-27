@@ -16,67 +16,79 @@ INSERT INTO historial_ofertas (id, oferta, usuario_DNI, publicacion_id) VALUES (
 delimiter //
 create procedure buscarPublicacion(in productito text)
 begin
-	select publicacion.id, nombreProducto, categoria from producto join publicacion on idProducto = producto_idProducto join categoria on idcategoria = categoria_idCategoria where nombreProducto = productito;
+	select publicacion.id, nombreProducto, categoria from producto join publicacion
+    on idProducto = producto_idProducto join categoria on idcategoria = categoria_idCategoria where nombreProducto = productito;
 end //
 delimiter ;
-call buscarPublicacion("");
+call buscarPublicacion("Notebook HP");
 
 #2)------------------------------------------------------------------------------------------------
 delimiter //
-create procedure crearPublicacion (in idPubli int, in cuantoDuele float, in nivelPubli varchar(45), in estado varchar(45), in idProdu int, in idCat int, in DNI int, in fecha datetime, in titulito text)
-begin 
-insert into publicacion values(idPubli, cuantoDuele, nivelPubli, estado, idProdu, idCat, DNI, fecha, titulito);
-end //
+create procedure crearPublicacionSubasta (in id int, in oferta int, in fecha_tope datetime, in oferta_minima int)
+begin
+  insert into subasta values (id, oferta, fecha_tope, oferta_minima);
+end//
 delimiter ;
-drop procedure crearPublicacion;
-call crearPublicacion(1,500.00,"Publicacion Bronce", "Activa", 1 , 1,1,"2025-05-02","IPhone 16 pro");
 
 delimiter //
-create procedure crearSubasta(in ofert int, in idPubli int, in topeFecha datetime, in minOferta int)
-begin 
-insert into subasta values(ofert, idPubli, topeFecha, minOferta);
-end //
+create procedure crearPublicacionVentaDirecta (in id int, in pago_id int, in envio_id int, in calificacion int)
+begin
+  insert into venta_directa values (id, pago_id, envio_id, calificacion);
+end//
 delimiter ;
-drop procedure crearSubasta;
-call crearSubasta(25, 3, "2025-12-12", 15);
 
 delimiter //
-create procedure crearVenta(in pagoId int, in envioId int, in publiId int, in calificacion int)
-begin 
-insert into venta_directa values(pagoId, envioId, publiId, calificacion);
-end //
+create procedure crearPublicacion (in id int, in precio float, in nivel varchar(45), in estado varchar(45), in producto_id int, in categoria_id int, in usuario_dni int, in fecha date, in tipo varchar(20), in oferta int, in fecha_tope datetime, in oferta_minima int, in pago_id int, in envio_id int, in calificacion int)
+begin
+  insert into publicacion values (id, precio, nivel, estado, producto_id, categoria_id, usuario_dni, fecha);
+  if tipo = "subasta" then
+    call crearPublicacionSubasta(id, oferta, fecha_tope, oferta_minima);
+  elseif tipo = "venta_directa" then
+    call crearPublicacionVentaDirecta(id, pago_id, envio_id, calificacion);
+  end if;
+end//
 delimiter ;
-call crearVenta(1,1,1,5); 	
+call crearPublicacion(101, 2500.75, "premium", "activa", 5, 2, 12345678, "2025-06-27", "subasta", 1000, "2025-07-15 23:59:59", 900, null, null, null);
 
 #3)------------------------------------------------------------------------------------------------
 delimiter //
 create procedure verPreguntas(in idPubli int)
-begin 
-select pregunta from preguntas where publicacion_id = idPubli;
-end //
+begin
+  select pregunta from preguntas where publicacion_id = idPubli;
+end//
 delimiter ;
 call verPreguntas(5);
 
 #4)------------------------------------------------------------------------------------------------
 delimiter //
 create procedure actualizarReputacionUsuarios()
-begin 
-declare hayFilas int default 1;
-declare usuario int default 0;
-declare promedio1 int default 0;
-declare promedio2 int default 0;
-declare cursorCalificaciones cursor for select publicacion.usuario_DNI, avg(calificacion_compra), avg(calificacion_venta) from compra join publicacion on publicacion.id = compra.publicacion_id join venta_directa on publicacion.id = venta_directa.publicacion_id group by usuario_DNI; 
-declare continue handler for not found set hayFilas = 0;
-open cursorCalificaciones;
-loopsito:loop
-	fetch cursorCalificaciones into usuario, promedio1, promedio2;
-    if hayFilas = 0 then 
-		leave loopsito;
-	end if;
-    update usuario set reputacion = (promedio1 + promedio2) / 2 where DNI = usuario;
+begin
+    declare hay_filas int default 1;
+    declare dni_usuario int;
+    declare promedio_calificacion_compra decimal(5,2);
+    declare promedio_calificacion_venta decimal(5,2);
+    declare promedio_final decimal(5,2);
+    declare cursor_calificaciones cursor for 
+        select publicacion.usuario_DNI, avg(compra.calificacion_compra), avg(venta_directa.calificacion_venta)
+        from compra
+        join publicacion on publicacion.id = compra.publicacion_id
+        join venta_directa on venta_directa.publicacion_id = publicacion.id
+        group by publicacion.usuario_DNI;
+    declare continue handler for not found set hay_filas = 0;
+    open cursor_calificaciones;
+    bucle_actualizar: loop
+        fetch cursor_calificaciones into dni_usuario, promedio_calificacion_compra, promedio_calificacion_venta;
+        if hay_filas = 0 then 
+            leave bucle_actualizar;
+        end if;
+
+        set promedio_calificacion_compra = ifnull(promedio_calificacion_compra, 0);
+        set promedio_calificacion_venta = ifnull(promedio_calificacion_venta, 0);
+        set promedio_final = (promedio_calificacion_compra + promedio_calificacion_venta) / 2;
+        update usuario set reputacion = promedio_final where DNI = dni_usuario;
     end loop;
-close cursorCalificaciones;
-end //
+    close cursor_calificaciones;
+end//
 delimiter ;
 drop procedure actualizarReputacionUsuarios;
 call actualizarReputacionUsuarios();
@@ -84,70 +96,76 @@ call actualizarReputacionUsuarios();
 #------------------------------Stored Functions------------------------------#
 #1) 
 delimiter //
-create function comprarProducto(dni int, idPubli int, metPago int, envio int) returns text deterministic
+create function comprarProducto(dni int, idPubli int, metPago int, idEnvio int) returns text deterministic
 begin 
 declare mensaje text default "";
-if (select estado from publicacion) = "Finalizada" then
+if (select estado from publicacion where publicacion.id = idPubli) = "Finalizada" then
 	set mensaje = "La publicacion no esta activa";
-else if (select subasta.publicacion_id from subasta) != null then
+else if (select subasta.publicacion_id from subasta where publicacion.id = idPubli) is not null then
 	set mensaje = "Es una subasta";
 else 
-	insert into compra values(1, current_date(), null, dni, idpubli, metPago, envio);
+	insert into compra values(current_date(), null, dni, idpubli, metPago,null,  idEnvio);
 end if;
 end if;
 return mensaje;
 end //
 delimiter ;
-drop function comprarProducto;
 select comprarProducto(1,2,1,1);
  
 #2)------------------------------------------------------------------------------------------------
 delimiter //
-create function cerrarPublicacion(DNI int) returns text deterministic
-begin 
-declare msg text default "";
-if (select calificacion_compra from compra) is not null then
-	delete from publicacion where usuario_DNI = DNI;
-    update publicacion set estado = "Finalizada";
-else
-	set msg = "Tiene calificacion pendiente";
-end if;
-return msg;
-end //
+create function cerrarPublicacion(idpubli int, dni int) returns varchar(100) deterministic
+begin
+    declare vendedor int;
+    declare hay_calif_pendiente int default 0;
+    select usuario_DNI into vendedor from publicacion where id = idpubli;
+    if vendedor != dni then
+        return "solo el vendedor puede cerrar la publicacion";
+    end if;
+    select count(*) into hay_calif_pendiente from compra where publicacion_id = idpubli and calificacion_compra is null;
+    if hay_calif_pendiente > 0 then
+        return "tiene calificacion pendiente";
+    end if;
+    update publicacion set estado = "Finalizada" where id = idpubli;
+    return "publicacion cerrada con exito";
+end//
 delimiter ;
-select cerrarPublicacion(1);
+drop function cerrarPublicacion;
+select cerrarPublicacion(1,1);
  
 #3)------------------------------------------------------------------------------------------------
 delimiter //
 create function eliminarProducto(idProdu int) returns text deterministic
 begin 
-declare msg text default "";
-if idProdu in (select producto_idProducto from publicacion) then
-	set msg = "El producto esta en una publicacion";
-else 
-	delete from producto where idProducto = idProdu;
-    set msg = "Producto eliminado";
-        RETURN msg;
- 
+	declare msg text default "";
+	if idProdu in (select producto_idProducto from publicacion) then
+		set msg = "El producto esta en una publicacion";
+	else 
+		delete from producto where idProducto = idProdu;
+		set msg = "Producto eliminado";
 	end if;
-end //
+	return msg;
+	end //
 delimiter ;
-select eliminarProducto;
+drop function eliminarProducto;
+select eliminarProducto(1);
  
 #4)------------------------------------------------------------------------------------------------
 delimiter //
 create function pausarPublicacion(idPubli int) returns text deterministic
 begin 
-declare mensajito text default "";
-if idPubli in (select id from publicacion) then
-	update publicacion set estado = "Pausada" where idPubli = id.publicacion;
-    set mensajito = "Publicacion pausada";
-else 
-	set mensajito = "No existe la publicacion";
+	declare mensajito text default "";
+	if idPubli in (select id from publicacion) then
+		update publicacion set estado = "Pausada" where idPubli = publicacion.id;
+		set mensajito = "Publicacion pausada";
+	else 
+		set mensajito = "No existe la publicacion";
+	end if;
     return mensajito;
-end if;
 end //
 delimiter ;
+drop function pausarPublicacion;
+select pausarPublicacion(2);
  
 #5)------------------------------------------------------------------------------------------------
  
@@ -168,7 +186,7 @@ begin
         set mensaje = "La publicación no corresponde a una subasta.";
         return mensaje;
     end if;
-    select oferta into ofertaActual from subasta where publicacionId = idDeseado;
+    select oferta into ofertaActual from subasta where publicacion_id = idDeseado;
 	if ofertaNueva > ofertaActual then
 		insert into historial_ofertas values(ofertaNueva, usuarioOfertante, idDeseado);
         update subasta set oferta = ofertaNueva where publicacionId = idDeseado;
@@ -179,10 +197,12 @@ begin
     return mensaje;
 end //
 delimiter ;
+drop function pujarProducto;
+select pujarProducto(3,900,1);
 
 #6)------------------------------------------------------------------------------------------------
 delimiter //
-create function eliminarCategoria (categoriaDeseada varchar(45)) returns text deterministic
+create function eliminarCategoria (categoriaDeseada int) returns text deterministic
 begin
 	declare mensaje text default "";
     if not exists (select * from publicacion where categoria_idCategoria = categoriaDeseada) then
@@ -194,6 +214,9 @@ begin
     return mensaje;
 end //
 delimiter ;
+drop function eliminarCategoria;
+select eliminarCategoria(1);
+
 #7)------------------------------------------------------------------------------------------------
  
 delimiter //
@@ -214,35 +237,49 @@ begin
     return mensaje;
 end //
 delimiter ;
- 
+drop function puntuarComprador;
+select puntuarComprador(1,1,50);
 #8)------------------------------------------------------------------------------------------------
  
 delimiter //
-create function responderpregunta(id_vendedor int, idPreg int, msgRespuesta text) returns text deterministic
+create function responderPregunta(id_vendedor int, idPreg int, msgRespuesta text) returns text deterministic
 begin 
-declare mensaje text default "";
-if id_vendedor = (select usuario_DNI from publicacion join pregunta on publicacion.id = publicacion_id where idPregunta = idPreg) then
-	insert into respuestas values(null, msgRespuesta, idPreg);
-    set mensaje = "Pregunta Respondida";
-else 
-	set mensaje = "Este usurio no puede responder";
-	end if;
-return mensaje;
+	declare mensaje text default "";
+	if id_vendedor = (select publicacion.usuario_DNI from publicacion join preguntas on publicacion.id = publicacion_id where idPregunta = idPreg) then
+		insert into respuestas values(msgRespuesta, idPreg);
+		set mensaje = "Pregunta Respondida";
+	else 
+		set mensaje = "Este usurio no puede responder";
+		end if;
+	return mensaje;
 end //
 delimiter ;
+drop function responderPregunta;
+select responderPregunta(2,1,"dale epico");
 
 #------------------------------Vistas------------------------------#
 #1)
-create view preguntas_sin_respuesta as select preguntas.idPregunta, preguntas.pregunta, publicacion.id as publicacion_id, producto.nombreProducto as nombre_producto, usuario.nombre as nombre_usuario from preguntas join publicacion on preguntas.publicacion_id = publicacion.id join producto on publicacion.producto_idProducto = producto.idProducto join usuario on preguntas.usuario_DNI = usuario.DNI where publicacion.estado = 'activa' and preguntas.idPregunta not in (select preguntas_idPregunta from respuestas);
+create view preguntas_sin_respuesta as select preguntas.idPregunta, preguntas.pregunta, publicacion.id as publicacion_id,
+ producto.nombreProducto as nombre_producto, usuario.nombre as nombre_usuario from preguntas 
+join publicacion on preguntas.publicacion_id = publicacion.id join producto 
+on publicacion.producto_idProducto = producto.idProducto join usuario on preguntas.usuario_DNI = usuario.DNI
+ where publicacion.estado = 'activa' and preguntas.idPregunta not in (select preguntas_idPregunta from respuestas);
 
 #2) ------------------------------------------------------------------------------------------------
-create view top10_categorias as select categoria.categoria, count(*) as cantidad_publicaciones from publicacion join categoria on publicacion.categoria_idCategoria = categoria.idCategoria where publicacion.fechaPublicacion >= curdate() - interval 7 day group by categoria.categoria order by cantidad_publicaciones desc limit 10;
+create view top10_categorias as select categoria.categoria, count(*) as cantidad_publicaciones from publicacion 
+join categoria on publicacion.categoria_idCategoria = categoria.idCategoria where publicacion.fechaPublicacion 
+>= curdate() - interval 7 day group by categoria.categoria order by cantidad_publicaciones desc limit 10;
 
 #3)------------------------------------------------------------------------------------------------
-create view publicaciones_en_tendencia as select p.publicacion_id, pub.id, prod.nombreProducto, count(*) as cantidad_preguntas from preguntas p join publicacion pub on p.publicacion_id = pub.id join producto prod on pub.producto_idProducto = prod.idProducto where p.fechaPreguntas = curdate() group by p.publicacion_id, pub.id, prod.nombreProducto order by cantidad_preguntas desc;
+create view publicaciones_en_tendencia as select p.publicacion_id, pub.id, prod.nombreProducto, count(*) as cantidad_preguntas 
+from preguntas p join publicacion pub on p.publicacion_id = pub.id join producto prod on pub.producto_idProducto 
+= prod.idProducto where p.fechaPreguntas = curdate() group by p.publicacion_id, pub.id, prod.nombreProducto order by cantidad_preguntas desc;
 
 #4)------------------------------------------------------------------------------------------------
-create view vendedor_mayor_reputacion_por_categoria as select categoria.categoria, usuario.nombre from categoria join publicacion on categoria.idCategoria = publicacion.categoria_idCategoria join usuario on publicacion.usuario_DNI = usuario.DNI where (categoria.idCategoria, usuario.reputacion) in (select publicacion.categoria_idCategoria, max(usuario.reputacion) from publicacion join usuario on publicacion.usuario_DNI = usuario.DNI group by publicacion.categoria_idCategoria);
+create view vendedor_mayor_reputacion_por_categoria as select categoria.categoria, usuario.nombre from categoria 
+join publicacion on categoria.idCategoria = publicacion.categoria_idCategoria join usuario on publicacion.usuario_DNI = usuario.DNI 
+where (categoria.idCategoria, usuario.reputacion) in (select publicacion.categoria_idCategoria, max(usuario.reputacion) 
+from publicacion join usuario on publicacion.usuario_DNI = usuario.DNI group by publicacion.categoria_idCategoria);
 
 #------------------------------Triggers------------------------------#
 
@@ -254,55 +291,54 @@ begin
 end //
 delimiter ;
 
-
 #2)------------------------------------------------------------------------------------------------
 delimiter //
 create trigger calificar after update on venta_directa for each row
-begin 
-	if new.calificacion_venta is not null then 
-		update usuario set reputacion = new.calificacion_venta where DNI = (select usuario_DNI from publicacion where id = new.publicacion_id);
-	end if; 
-end //
+begin
+    if new.calificacion_venta is not null then
+        update usuario set reputacion = new.calificacion_venta where DNI = (select usuario_DNI from publicacion where id = new.publicacion_id);
+    end if;
+end//
 delimiter ;
+
 
 #3)------------------------------------------------------------------------------------------------
 delimiter //
 create trigger cambiarCategoria after insert on compra for each row
 begin
-	declare vendedor int;
-    declare cantcompras int;
-    declare facturacion int;
-    select sum(precio) into facturacion from publicacion where publicacion_id.usuario_DNI=vendedor;
-    select usuario_DNI into vendedor from publicacion where new.publicacion_id=id;
-	select count(*) into cantcompras from compra join publicacion on publicacion.id=compra.publicacion_id where vendedor=publicacion.usuario_DNI;
-	if (cantcompras<=5) then
-		update usuario set nivel="Normal" where DNI=vendedor;
-    else if(cantcompras>5 or facturacion>=100000) then
-		update usuario set nivel="Platinum" where DNI=vendedor;
-    else if(cantcompras>10 or facturacion>=1000000) then
-		update usuario set nivel="Gold" where DNI=vendedor;
-	end if;
+    declare vendedor int;
+    declare cantidad_compras int;
+    declare total_facturado float;
+    select usuario_DNI into vendedor from publicacion where id = new.publicacion_id;
+    select count(*) into cantidad_compras from compra join publicacion on compra.publicacion_id = publicacion.id where publicacion.usuario_DNI = vendedor;
+    select sum(precio) into total_facturado from publicacion where usuario_DNI = vendedor;
+    if cantidad_compras > 10 or total_facturado >= 1000000 then
+        update usuario set nivel = "Gold" where DNI = vendedor;
+    elseif cantidad_compras > 5 or total_facturado >= 100000 then
+        update usuario set nivel = "Platinum" where DNI = vendedor;
+    else
+        update usuario set nivel = "Normal" where DNI = vendedor;
     end if;
-    end if;
-end //
+end//
 delimiter ;
 
 #------------------------------Eventos------------------------------#
 
 #1)
 delimiter //
-create event if not exists mantenimientoPublicaciones on schedule every 1 week starts now() do
+create event mantenimientoPublicaciones on schedule every 1 week starts now() do
 begin
-	delete from publicacion where estado = "pausado" and fechaPublicacion < fechaPublicacion - interval 90 day;
+	delete from publicacion where estado = "Pausada" and fechaPublicacion < fechaPublicacion - interval 90 day;
 end //
 delimiter ;
 
 #2)------------------------------------------------------------------------------------------------
+
 delimiter //
-create event if not exists publicacionesObservadas on schedule every 1 day starts now do
+create event publicacionesObservadas on schedule every 1 day starts now() do
 begin
 	update publicacion join venta_directa on publicacion.id = publicacion_id join pago on idPago = pago_idPago
-    set estado = "observadas" where publicacion.estado = "activo" and metodo = null;
+    set estado = "observadas" where publicacion.estado = "Activa";/*el metodo de pago no está en la publicacion en nuestra db*/
 end //
 delimiter ;
 
@@ -322,35 +358,28 @@ create index statusAPF on publicacion(estado);
 
 #1)
 delimiter //
-create procedure crearPublicacion (in idPubli int, in cuantoDuele float, in nivelPubli varchar(45), in estado varchar(45), in tipo text, in idProdu int, in idCat int, in DNI int, in fecha datetime, in titulito text)
-begin 
-start transaction;
-		insert publicacion values(idPubli,cuantoDuele,nivelPuli,estado,tipo,idProdu,idCat,DNI,fecha,titulito);
- if not exists (select publicacion.id from publicacion where id = publicacion.idPubli) then
-        commit;
-        select "Publicación creada con éxito." as mensaje;
-    else
-        rollback;
-        signal sqlstate '45000' set message_text = "La publicación ya existe.";
-    end if;
-end;
-end //
-delimiter ;
 
-delimiter //
-create procedure crearSubasta(in ofert int, in idPubli int, in tope datetime, in minimo double)
-begin 
-start transaction;
-insert into subasta values(ofert, idPubli, tope, minimo);
-if not exists (select publicacion_id from venta_directa where publicacion_id=idPubli) then 
-commit;
-        select "subasta creada con éxito." as mensaje;
-    else
+create procedure crearPublicacionTransaccion(in idPublicacion int, in precio float, in nivelPublicacion varchar(45), in estado varchar(45), in tipo varchar(45), in idProducto int, in idCategoria int, in dniUsuario int, in fecha datetime, in oferta int, in fechaTope datetime, in ofertaMinima float)
+begin
+    declare mensaje text default "";
+    declare exit handler for sqlexception
+    begin
         rollback;
-        signal sqlstate '45000' set message_text = "La publicación es de venta directa";
-end if;
-end //
+        set mensaje = "ocurrió un error, se deshizo la transacción.";
+        select mensaje as resultado;
+    end;
+    start transaction;
+    insert into publicacion values(idPublicacion, precio, nivelPublicacion, estado, idProducto, idCategoria, dniUsuario, fecha);
+    if tipo = "subasta" then
+        insert into subasta values(oferta, idPublicacion, fechaTope, ofertaMinima);
+    end if;
+    commit;
+    set mensaje = "publicación creada con éxito";
+    select mensaje as resultado;
+end//
 delimiter ;
+call crearPublicacionTransaccion(1, 2500.0, "Premium", "activa", "venta", 10, 3, 12345678, "2025-06-27 00:00:00", "zapatillas nike air max", "descripcion corta", "descripcion larga");
+
 
 #2)------------------------------------------------------------------------------------------------
 delimiter //
@@ -361,8 +390,6 @@ declare usuario int default 0;
 declare promedio1 int default 0;
 declare promedio2 int default 0;
 declare promedio3 int default 0;
-
-
 declare cursorCalificaciones cursor for select usuario_DNI, avg(calificacion_compra), avg(calificacion_vendedor) from publicacion join compra on publicacion.id = publicacion_id group by usuario_DNI; 
 declare continue handler for not found set hayFilas = 0;
 open cursorCalificaciones;
