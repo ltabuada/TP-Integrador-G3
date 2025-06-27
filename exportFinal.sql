@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.42, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: TP_final
+-- Host: 127.0.0.1    Database: TP-Integrador-G3
 -- ------------------------------------------------------
 -- Server version	8.0.42-0ubuntu0.22.04.1
 
