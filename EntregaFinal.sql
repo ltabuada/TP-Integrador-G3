@@ -233,9 +233,8 @@ end //
 delimiter ;
 
 #------------------------------Vistas------------------------------#
-
 #1)
-create view preguntas_sin_respuesta as select pregunta.pregunta, idpregunta, publicacion.idpublicacion, producto.nombre as nombre, usuario.nombre as n from pregunta join publicacion on pregunta.idpublicacion=publicacion.idpublicacion join usuario on pregunta.idusuariocompra=idusuario join producto on idusuario=producto.idusuariocreador where estado="activa" and idpregunta NOT IN (SELECT idpregunta FROM respuesta);
+create view preguntas_sin_respuesta as select preguntas.pregunta, preguntas.idpregunta, publicacion.idpublicacion, producto.nombre as nombre_producto, usuario.nombre as nombre_usuario from preguntas join publicacion on preguntas.idpublicacion = publicacion.idpublicacion join usuario on preguntas.idusuariocompra = usuario.idusuario join producto on publicacion.idproducto = producto.idproducto where publicacion.estado = 'activa' and preguntas.idpregunta not in (select idpregunta from respuestas);
 
 #2) ------------------------------------------------------------------------------------------------
 create view top_10_categorias as select categoria.idcategoria, categoria.nombre, count(publicacion.idpublicacion) as total_publicaciones from publicacion join categoria on categoria.idcategoria=publicacion.idcategoria where week(fechaPublicacion) >= week(current_date()) group by categoria.idcategoria, categoria.nombre order by total_publicaciones DESC LIMIT 10;
