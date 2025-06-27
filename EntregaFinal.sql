@@ -6,7 +6,7 @@ INSERT INTO publicacion (id, precio, nivelPublicacion, estado, producto_idProduc
 INSERT INTO preguntas (idPregunta, pregunta, usuario_DNI, publicacion_id, fechaPreguntas) VALUES (1, '¿Viene con garantía?', 2, 1, '2024-06-01'), (2, '¿Qué talla es?', 3, 2, '2024-06-02'), (3, '¿Es nuevo?', 4, 3, '2024-06-03'), (4, '¿Cuánto mide?', 5, 4, '2024-06-04'), (5, '¿Tiene accesorios?', 6, 5, '2024-06-05'), (6, '¿Cuánto pesa?', 7, 6, '2024-06-06'), (7, '¿Tiempo de entrega?', 8, 7, '2024-06-07'), (8, '¿Garantía incluida?', 9, 8, '2024-06-08'), (9, '¿Se puede probar?', 10, 9, '2024-06-09'), (10, '¿Viene con funda?', 1, 10, '2024-06-10');
 INSERT INTO respuestas (idRespuesta, respuesta, preguntas_idPregunta) VALUES (1, 'Sí, 1 año.', 1), (2, 'Talla 42.', 2), (3, 'Sí, nuevo.', 3), (4, '50 cm.', 4), (5, 'Sí, incluye.', 5), (6, '1.5 kg.', 6), (7, '2 días.', 7), (8, 'Sí.', 8), (9, 'Claro.', 9), (10, 'En buen estado.', 10);
 INSERT INTO compra (idCompra, fecha, usuario_DNI, publicacion_id, envio_idEnvio) VALUES (1, '2024-06-11', 2, 1, 1), (2, '2024-06-12', 3, 2, 2), (3, '2024-06-13', 4, 3, 3), (4, '2024-06-14', 5, 4, 4), (5, '2024-06-15', 6, 5, 5), (6, '2024-06-16', 7, 1, 6), (7, '2024-06-17', 8, 2, 7), (8, '2024-06-18', 9, 3, 8), (9, '2024-06-19', 10, 4, 9), (10, '2024-06-20', 1, 5, 10);
-INSERT INTO subasta (idSubasta, fechaInicio, fechaFin, publicacion_idPublicacion, precioMinimo) VALUES (1, '2024-06-01', '2024-06-07', 1, 400), (2, '2024-06-02', '2024-06-08', 2, 100), (3, '2024-06-03', '2024-06-09', 3, 40), (4, '2024-06-04', '2024-06-10', 4, 70), (5, '2024-06-05', '2024-06-11', 5, 180);
+INSERT INTO subasta VALUES (260000, 1, '2025-06-15 18:00:00', 250000), (NULL, 2, '2025-06-16 12:00:00', 50000), (98000, 3, '2025-06-17 09:00:00', 90000), (NULL, 4, '2025-06-18 20:00:00', 13000), (195000, 5, '2025-06-19 22:00:00', 180000), (40000, 6, '2025-06-20 10:30:00', 37000), (130000, 7, '2025-06-21 14:00:00', 120000), (NULL, 8, '2025-06-22 16:45:00', 27000), (88000, 9, '2025-06-23 19:00:00', 85000), (22000, 10, '2025-06-24 08:15:00', 20000);
 INSERT INTO pago (idPago, metodo) VALUES (6, 'Tarjeta'), (7, 'Transferencia'), (8, 'Efectivo'), (9, 'MercadoPago'), (10, 'Tarjeta');
 INSERT INTO venta_directa (pago_idPago, envio_idenvio, publicacion_id, calificacion_venta) VALUES (6, 6, 6, 5), (7, 7, 7, 4), (8, 8, 8, 3), (9, 9, 9, 5), (10, 10, 10, 4);
 INSERT INTO historial_ofertas (id, oferta, usuario_DNI, publicacion_id) VALUES (1, 490, 2, 1), (2, 115, 3, 2), (3, 47, 4, 3), (4, 78, 5, 4), (5, 195, 6, 5), (6, 370, 7, 6), (7, 89, 8, 7), (8, 59, 9, 8), (9, 280, 10, 9), (10, 260, 1, 10);
@@ -232,8 +232,6 @@ return mensaje;
 end //
 delimiter ;
 
-
-
 #------------------------------Vistas------------------------------#
 
 #1)
@@ -250,7 +248,7 @@ create view mejor_vendedor as select usuario.nombre from usuario join publicacio
 
 #------------------------------Triggers------------------------------#
 
-#1)
+#1)------------------------------------------------------------------------------------------------
 delimiter //
 create trigger borrarPreguntas before delete on publicacion for each row 
 begin
@@ -325,5 +323,4 @@ create unique index dontRepeatEmail on usuario(email);
 #3)------------------------------------------------------------------------------------------------
 create index statusAPF on publicacion(estado);
 
-create database TP_final;
 
